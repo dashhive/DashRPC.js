@@ -1,7 +1,7 @@
 'use strict';
 
 const promisify = require('util').promisify;
-const RPCClient = require('./lib');
+const RPCClient = require('./lib/');
 
 class PromisifyModule {
   constructor(options) {

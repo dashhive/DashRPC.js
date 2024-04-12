@@ -1,12 +1,16 @@
 {
-  "name": "@dashevo/dashd-rpc",
-  "description": "Dash Client Library to connect to Dash Core (dashd) via RPC",
+  "name": "dashrpc",
+  "description": "Lightweight JavaScript SDK Dash RPC, made Browser, Node.js, & Bundler compatible",
   "version": "18.2.0",
   "author": {
-    "name": "Stephen Pair",
-    "email": "stephen@bitpay.com"
+    "name": "AJ ONeal",
+    "email": "aj@therootcompany.com"
   },
   "contributors": [
+    {
+      "name": "Stephen Pair",
+      "email": "stephen@bitpay.com"
+    },
     {
       "name": "Jeff Garzik",
       "email": "jgarzik@bitpay.com"
@@ -34,10 +38,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/dashevo/dashd-rpc"
+    "url": "https://github.com/dashhive/DashRPC.js"
   },
   "license": "MIT",
-  "main": "lib/index.js",
+  "main": "promise.js",
   "scripts": {
     "fmt": "npm run prettier",
     "test": "mocha test -R spec",
@@ -58,7 +62,7 @@
     "sinon": "^9.2.2"
   },
   "bugs": {
-    "url": "https://github.com/dashevo/dashd-rpc/issues"
+    "url": "https://github.com/dashhive/DashRPC.js/issues"
   },
-  "homepage": "https://github.com/dashevo/dashd-rpc"
+  "homepage": "https://github.com/dashhive/DashRPC.js"
 }
