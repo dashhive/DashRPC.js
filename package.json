@@ -1,7 +1,41 @@
 {
   "name": "dashrpc",
-  "description": "Lightweight JavaScript SDK Dash RPC, made Browser, Node.js, & Bundler compatible",
   "version": "18.2.0",
+  "description": "Lightweight JavaScript SDK Dash RPC, made Browser, Node.js, & Bundler compatible",
+  "main": "promise.js",
+  "files": [
+      "promise.js",
+      "lib/index.js"
+  ],
+  "scripts": {
+    "fmt": "npm run prettier",
+    "test": "mocha test -R spec",
+    "coverage": "nyc npm run test",
+    "--------": "------------------------------------------------",
+    "prettier": "npx -p prettier@3.x -- prettier -w '**/*.{js,md}'"
+  },
+  "homepage": "https://github.com/dashhive/DashRPC.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dashhive/DashRPC.js"
+  },
+  "keywords": [
+    "dash",
+    "rpc"
+  ],
+  "devDependencies": {
+    "async": "^3.2.4",
+    "chai": "^4.2.0",
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "mocha": "^10.4.0",
+    "nyc": "15.1.0",
+    "sinon": "^9.2.2"
+  },
+  "bugs": {
+    "url": "https://github.com/dashhive/DashRPC.js/issues"
+  },
   "author": {
     "name": "AJ ONeal",
     "email": "aj@therootcompany.com"
@@ -32,37 +66,5 @@
       "email": "alex.werner@dash.org"
     }
   ],
-  "keywords": [
-    "dash",
-    "rpc"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/dashhive/DashRPC.js"
-  },
-  "license": "MIT",
-  "main": "promise.js",
-  "scripts": {
-    "fmt": "npm run prettier",
-    "test": "mocha test -R spec",
-    "coverage": "nyc npm run test",
-    "--------": "------------------------------------------------",
-    "prettier": "npx -p prettier@3.x -- prettier -w '**/*.{js,md}'"
-  },
-  "dependencies": {
-  },
-  "devDependencies": {
-    "async": "^3.2.4",
-    "chai": "^4.2.0",
-    "eslint": "^7.15.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "mocha": "^10.4.0",
-    "nyc": "15.1.0",
-    "sinon": "^9.2.2"
-  },
-  "bugs": {
-    "url": "https://github.com/dashhive/DashRPC.js/issues"
-  },
-  "homepage": "https://github.com/dashhive/DashRPC.js"
+  "license": "MIT"
 }
