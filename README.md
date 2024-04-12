@@ -44,6 +44,9 @@ var config = {
   pass: 'local321',
   host: '127.0.0.1',
   port: 19998,
+  onconnected: function () {
+    console.info('[dashrpc] connected to `${config.host:config.port}`');
+  },
 };
 ```
 
@@ -52,6 +55,9 @@ var RpcClient = require('dashrpc');
 var rpc = new RpcClient(config);
 
 async function main() {
+  let height = await rpc.init({ retry: 5000 });
+  console.info(`[dashrpc] best block height is ${height}`);
+
   let rawMempool = await rpc.getRawMemPool();
   for (let result of rawMempool.result) {
     let rawTx = await rpc.getRawTransaction(r);
