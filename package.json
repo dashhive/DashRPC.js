@@ -8,6 +8,7 @@
       "lib/index.js"
   ],
   "scripts": {
+    "bump": "npm version -m \"chore(release): bump to v%s\"",
     "fmt": "npm run prettier",
     "test": "mocha test -R spec",
     "coverage": "nyc npm run test",
