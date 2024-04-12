@@ -1,6 +1,6 @@
 {
   "name": "dashrpc",
-  "version": "19.0.0",
+  "version": "19.0.1",
   "description": "Lightweight JavaScript SDK Dash RPC, made Browser, Node.js, & Bundler compatible",
   "main": "promise.js",
   "files": [
