@@ -244,6 +244,7 @@ var DashRpc = ('object' === typeof module && exports) || {};
     };
 
     // For definitions of RPC calls, see various files in:
+    // https://github.com/dashpay/docs-core/blob/main/docs/api/remote-procedure-call-quick-reference.md
     // https://github.com/dashpay/dash/tree/master/src
     rpc.abandonTransaction = createProto('abandonTransaction', 'str');
     rpc.addMultiSigAddress = createProto('addMultiSigAddress', 'int str str');
