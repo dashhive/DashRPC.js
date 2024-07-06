@@ -2,9 +2,9 @@
   "name": "dashrpc",
   "version": "19.0.1",
   "description": "Lightweight JavaScript SDK Dash RPC, made Browser, Node.js, & Bundler compatible",
-  "main": "lib/index.js",
+  "main": "dashrpc.js",
   "files": [
-    "lib/index.js"
+    "dashrpc.js"
   ],
   "scripts": {
     "bump": "npm version -m \"chore(release): bump to v%s\"",

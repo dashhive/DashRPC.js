@@ -14,16 +14,16 @@ npm install --save dashrpc
 
 ## Usage
 
-You can examine `RpcClient.callspec` to see the list of supported RPCs:
+You can examine `DashRpc.callspec` to see the list of supported RPCs:
 
 ```js
 console.info('Supported RPCs:');
-console.info(RpcClient.callspec);
+console.info(DashRpc.callspec);
 ```
 
 If any of them are out of date with [Dash: Docs: RPCs: Quick Reference](https://docs.dash.org/projects/core/en/stable/docs/api/remote-procedure-call-quick-reference.html), feel free to open an issue or PR.
 
-### RpcClient
+### DashRpc
 
 Config parameters :
 
@@ -51,8 +51,8 @@ var config = {
 ```
 
 ```js
-var RpcClient = require('dashrpc');
-var rpc = new RpcClient(config);
+var DashRpc = require('dashrpc');
+var rpc = DashRpc.create(config);
 
 async function main() {
   let height = await rpc.init({ retry: 5000 });
@@ -80,8 +80,8 @@ main
 You can dynamically access to the help of each method by doing
 
 ```
-const RpcClient = require('dashrpc');
-var client = new RPCclient({
+const DashRpc = require('dashrpc');
+var client = DashRpc.create({
     protocol:'http',
     user: 'dash',
     pass: 'local321',
