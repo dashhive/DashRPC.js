@@ -13,11 +13,11 @@
     "test": "node ./tests/",
     "--------": "------------------------------------------------",
     "prettier": "npx -p prettier@3.x -- prettier -w '**/*.{js,md}'",
-    "jshint": "npx -p jshint@2.x -- jshint -c ./.jshintrc ./*.js ./lib",
+    "jshint": "npx -p jshint@2.x -- jshint -c ./.jshintrc ./*.js",
     "tsc": "npx -p typescript@4.x -- tsc -p ./jsconfig.json",
     "reexport-types": "npx -p jswt@1.x -- reexport",
     "---------": "-----------------------------------------------",
-    "prepublish": "npm run reexport-types"
+    "prepublish": "npm run reexport-types && npm run fmt"
   },
   "homepage": "https://github.com/dashhive/DashRPC.js",
   "repository": {

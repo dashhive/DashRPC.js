@@ -1,3 +1,33 @@
+/**
+ * @typedef DashRPC
+ * @prop {Int16} E_IN_WARMUP
+ * @prop {DashRPCCreate} create
+ * @prop {Object.<String, Function>} _typeConverters
+ */
+
+/**
+ * @callback DashRPCCreate
+ * @param {DashRPCOptions} opts
+ */
+
+/**
+ * @typedef DashRPCOptions
+ * @prop {String} [host]
+ * @prop {Uint16} [port]
+ * @prop {String} [user]
+ * @prop {String} [pass]
+ * @prop {Number} [timeout]
+ * @prop {String} [protocol]
+ * @prop {DashRPCOnconnected} [onconnected]
+ * @prop {any} [httpOptions]
+ */
+
+/**
+ * @callback DashRPCOnconnected
+ * @param {Error?} [err]
+ */
+
+/** @type {DashRPC} */
 //@ts-ignore
 var DashRpc = ('object' === typeof module && exports) || {};
 (function (window, DashRpc) {
@@ -9,7 +39,9 @@ var DashRpc = ('object' === typeof module && exports) || {};
   DashRpc.create = function (opts) {
     let rpc = {};
 
-    opts = opts || {};
+    if (!opts) {
+      opts = Object.assign({});
+    }
     rpc.host = opts.host || '127.0.0.1';
     rpc.port = opts.port || 9998;
     rpc.user = opts.user || 'user';
@@ -17,6 +49,8 @@ var DashRpc = ('object' === typeof module && exports) || {};
     rpc.timeout = opts.timeout;
     rpc.protocol = opts.protocol || 'https';
     rpc.onconnected = opts.onconnected;
+    rpc._connected = false;
+    rpc.httpOptions = opts.httpOptions || {};
 
     rpc._getHeight = async function () {
       let warn = null;
@@ -60,7 +94,6 @@ var DashRpc = ('object' === typeof module && exports) || {};
     };
 
     rpc.request = async function (request) {
-      /* jshint validthis: true */
       const path = request.path;
       delete request.path;
       const body = JSON.stringify(request);
@@ -75,19 +108,26 @@ var DashRpc = ('object' === typeof module && exports) || {};
       };
 
       if (rpc.timeout) {
-        options.headersTimeout = rpc.timeout;
-        options.keepAliveTimeout = rpc.timeout;
+        Object.assign(options, {
+          headersTimeout: rpc.timeout,
+          keepAliveTimeout: rpc.timeout,
+        });
       }
 
       if (rpc.httpOptions) {
         Object.assign(options, rpc.httpOptions);
       }
 
+      /**
+       * @param {Error} e
+       */
       function wrapError(e) {
         const err = new Error(`[DashRpc] Request Error: ${e.message}`);
         throw err;
       }
 
+      /** @type {Response} */
+      //@ts-ignore
       let resp = await fetch(url, options).catch(wrapError);
       if (resp.status === 401) {
         throw new Error(`[DashRpc] Connection Rejected: 401 Unnauthorized`);
@@ -96,11 +136,15 @@ var DashRpc = ('object' === typeof module && exports) || {};
         throw new Error(`[DashRpc] Connection Rejected: 403 Forbidden`);
       }
 
+      /** @type {String} */
+      //@ts-ignore
       let data = await resp.text().catch(wrapError);
       if (resp.status === 500) {
         if (data === 'Work queue depth exceeded') {
           const exceededError = new Error(`[DashRpc] ${data}`);
-          exceededError.code = 429; // Too many requests
+          Object.assign(exceededError, {
+            code: 429, // Too many requests
+          });
           throw exceededError;
         }
       }
@@ -109,8 +153,12 @@ var DashRpc = ('object' === typeof module && exports) || {};
       try {
         parsedBuf = JSON.parse(data);
       } catch (e) {
-        let err = new Error(`[DashRpc] HTTP ${resp.status}: Error Parsing JSON: ${e.message}`);
-        err.data = data;
+        //@ts-ignore
+        let message = e.message;
+        let err = new Error(`[DashRpc] HTTP ${resp.status}: Error Parsing JSON: ${message}`);
+        Object.assign(err, {
+          data: data,
+        });
         throw err;
       }
 
@@ -123,6 +171,10 @@ var DashRpc = ('object' === typeof module && exports) || {};
       return parsedBuf;
     };
 
+    /**
+     * @param {Object} opts
+     * @param {Uint53} [opts.retry] - ms delay before retry
+     */
     rpc.init = async function (opts) {
       rpc._connected = false;
 
@@ -140,7 +192,8 @@ var DashRpc = ('object' === typeof module && exports) || {};
       return height;
     };
 
-    // For definitions of RPC calls, see various files in: https://github.com/dashpay/dash/tree/master/src
+    // For definitions of RPC calls, see various files in:
+    // https://github.com/dashpay/dash/tree/master/src
     rpc.abandonTransaction = createProto('abandonTransaction', 'str');
     rpc.addMultiSigAddress = createProto('addMultiSigAddress', 'int str str');
     rpc.addNode = createProto('addNode', 'str str');
@@ -273,6 +326,10 @@ var DashRpc = ('object' === typeof module && exports) || {};
     rpc.walletPassphraseChange = createProto('walletPassphraseChange', 'str str');
     rpc.getUser = createProto('getUser', 'str');
 
+    /**
+     * @param {String} methodName
+     * @param {String} argTypeStr - ex: 'int bool str'
+     */
     function createProto(methodName, argTypeStr) {
       methodName = methodName.toLowerCase();
 
@@ -316,25 +373,45 @@ var DashRpc = ('object' === typeof module && exports) || {};
   };
 
   DashRpc._typeConverters = {
+    /** @param {String|Number|Boolean} arg */
     str: function (arg) {
       return arg.toString();
     },
+    /** @param {String|Number} arg */
     int: function (arg) {
+      if (typeof arg === 'number') {
+        return arg;
+      }
       return parseFloat(arg);
     },
+    /** @param {String|Number} arg */
     int_str: function (arg) {
       if (typeof arg === 'number') {
-        return parseFloat(arg);
+        return Math.round(arg);
       }
 
       return arg.toString();
     },
+    /** @param {String|Number} arg */
     float: function (arg) {
+      if (typeof arg === 'number') {
+        return arg;
+      }
       return parseFloat(arg);
     },
+    /** @param {Boolean|String|Number} arg */
     bool: function (arg) {
-      return String(arg).toLowerCase() === 'true' || arg > 0;
+      if (typeof arg === 'boolean') {
+        return arg;
+      }
+
+      if (typeof arg === 'number') {
+        return arg > 0;
+      }
+
+      return String(arg).toLowerCase() === 'true';
     },
+    /** @param {Object|String|Number|Boolean} arg */
     obj: function (arg) {
       if (typeof arg === 'string') {
         return JSON.parse(arg);
@@ -343,10 +420,19 @@ var DashRpc = ('object' === typeof module && exports) || {};
     },
   };
 
+  /**
+   * @returns {Uint32}
+   */
   function getRandomId() {
-    return parseInt(Math.random() * 100000);
+    let f64 = Math.random() * 100000;
+    let i32 = Math.round(f64);
+    return i32;
   }
 
+  /**
+   * @param {Uint53} ms
+   * @returns {Promise<void>}
+   */
   function sleep(ms) {
     return new Promise(function (resolve) {
       setTimeout(resolve, ms);
@@ -359,3 +445,8 @@ var DashRpc = ('object' === typeof module && exports) || {};
 if ('object' === typeof module) {
   module.exports = DashRpc;
 }
+
+/** @typedef {Number} Uint53 */
+/** @typedef {Number} Uint32 */
+/** @typedef {Number} Uint16 */
+/** @typedef {Number} Int16 */
