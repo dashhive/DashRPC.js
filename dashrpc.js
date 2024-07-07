@@ -3,6 +3,8 @@
  * @prop {Int16} E_IN_WARMUP
  * @prop {DashRPCCreate} create
  * @prop {Object.<String, Function>} _typeConverters
+ * @prop {DashRPCSplicePathFromExtras} _splicePathFromExtras
+ * @prop {DashRPCConvertArgsTypes} _convertArgsTypes
  */
 
 /**
@@ -25,6 +27,25 @@
 /**
  * @callback DashRPCOnconnected
  * @param {Error?} [err]
+ */
+
+/**
+ * @typedef DashRPCRequest
+ * @prop {String} method - rpc call names
+ * @prop {Array<String|Number|Boolean|null>} params - same as the cli arguments
+ * @prop {Uint32} [id] - a random id between 0 and 100000
+ */
+
+/**
+ * @callback DashRPCSplicePathFromExtras
+ * @param {Array<any>?} [extras]
+ * @returns {String}
+ */
+
+/**
+ * @callback DashRPCConvertArgsTypes
+ * @param {Array<String>} argTypes
+ * @param {Array<any>} args
  */
 
 /** @type {DashRPC} */
@@ -93,9 +114,15 @@ var DashRpc = ('object' === typeof module && exports) || {};
       console.info(`[DashRpc] client connected to ${rpc.host}:${rpc.port}`);
     };
 
-    rpc.request = async function (request) {
-      const path = request.path;
-      delete request.path;
+    /**
+     * @param {String} path - either '/' or '/wallet/<name>'
+     * @param {DashRPCRequest} request
+     */
+    rpc.request = async function (path, request) {
+      if (!request.id) {
+        request.id = getRandomId();
+      }
+
       const body = JSON.stringify(request);
       const authStr = `${rpc.user}:${rpc.pass}`;
       const auth = btoa(authStr);
@@ -169,6 +196,25 @@ var DashRpc = ('object' === typeof module && exports) || {};
       }
 
       return parsedBuf;
+    };
+
+    /**
+     * @param {String} method
+     * @param {String} argTypesStr
+     * @param {...any} args
+     */
+    rpc._wrapRequest = async function (method, argTypesStr, ...args) {
+      method = method.toLowerCase();
+      let argTypes = argTypesStr.split(' ');
+
+      let path = DashRpc._splicePathFromExtras(args); // may args.splice(-1, 1)
+      let params = DashRpc._convertArgsTypes(argTypes, args);
+
+      let data = await rpc.request(path, {
+        method,
+        params,
+      });
+      return data;
     };
 
     /**
@@ -328,44 +374,16 @@ var DashRpc = ('object' === typeof module && exports) || {};
 
     /**
      * @param {String} methodName
-     * @param {String} argTypeStr - ex: 'int bool str'
+     * @param {String} argTypesStr - ex: 'int bool str'
      */
-    function createProto(methodName, argTypeStr) {
-      methodName = methodName.toLowerCase();
-
-      let argTypes = argTypeStr.split(' ');
-
-      async function callNamedRpc() {
-        let path = '/';
-        let args = Array.prototype.slice.call(arguments);
-
-        // The last optional parameter of requested method is a wallet name,
-        // which should not be passed via RPC, so we remove it.
-        if (args.length > 0 && typeof args[args.length - 1] === 'object' && args[args.length - 1].wallet) {
-          path = '/wallet/' + args[args.length - 1].wallet;
-          args.splice(args.length - 1, 1);
-        }
-
-        let convertedArgs = [];
-        for (let i = 0; i < args.length; i += 1) {
-          let argType = argTypes[i];
-          let convert = DashRpc._typeConverters[argType];
-          if (!convert) {
-            convert = DashRpc._typeConverters.str;
-          }
-          let arg = convert(args[i]);
-          convertedArgs.push(arg);
-        }
-
-        let data = await rpc.request({
-          path,
-          method: methodName,
-          params: convertedArgs,
-          id: getRandomId(),
-        });
+    function createProto(methodName, argTypesStr) {
+      /**
+       * @param {...any} args
+       */
+      async function callNamedRpc(...args) {
+        let data = await rpc._wrapRequest(methodName, argTypesStr, ...args);
         return data;
       }
-
       return callNamedRpc;
     }
 
@@ -418,6 +436,43 @@ var DashRpc = ('object' === typeof module && exports) || {};
       }
       return arg;
     },
+  };
+
+  DashRpc._convertArgsTypes = function (argTypes, args) {
+    args = args.slice(0);
+
+    let len = Math.min(argTypes.length, args.length);
+    for (let i = 0; i < len; i += 1) {
+      let argType = argTypes[i];
+      let convert = DashRpc._typeConverters[argType];
+      if (!convert) {
+        convert = DashRpc._typeConverters.str;
+      }
+      let arg = convert(args[i]);
+      args[i] = arg;
+    }
+
+    return args;
+  };
+
+  /**
+   * The last optional parameter of requested method is a wallet name,
+   * which should not be passed via RPC, so we remove it.
+   */
+  DashRpc._splicePathFromExtras = function (extras) {
+    let path = '/';
+    if (!extras) {
+      return path;
+    }
+
+    let lastIndex = extras.length - 1;
+    let last = extras[lastIndex];
+    if (last?.wallet) {
+      extras.splice(lastIndex, 1);
+      path = `/wallet/${last.wallet}`;
+    }
+
+    return path;
   };
 
   /**

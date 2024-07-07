@@ -6,4 +6,11 @@ module.exports = require('./dashrpc.js');
 
 // these typedef reexports will be available to dependent packages
 /**
+ * @typedef {import('./dashrpc.js').DashRPC} DashRPC
+ * @typedef {import('./dashrpc.js').DashRPCOptions} DashRPCOptions
+ * @typedef {import('./dashrpc.js').DashRPCRequest} DashRPCRequest
+ * @typedef {import('./dashrpc.js').Uint53} Uint53
+ * @typedef {import('./dashrpc.js').Uint32} Uint32
+ * @typedef {import('./dashrpc.js').Uint16} Uint16
+ * @typedef {import('./dashrpc.js').Int16} Int16
  */
