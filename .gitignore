@@ -1,3 +1,8 @@
+env.js
+env.*.js
+*.env.js
+!example.env.js
+
 .env
 .env.*
 *.env
