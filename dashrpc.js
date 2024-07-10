@@ -115,7 +115,9 @@ var DashRpc = ('object' === typeof module && exports) || {};
       }
 
       if (parsedBuf.error) {
-        throw new Error(parsedBuf.error);
+        let err = new Error(parsedBuf.error.message);
+        Object.assign(err, parsedBuf.error);
+        throw err;
       }
 
       return parsedBuf;
