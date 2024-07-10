@@ -120,7 +120,12 @@ var DashRpc = ('object' === typeof module && exports) || {};
      */
     rpc.request = async function (path, request) {
       if (!request.id) {
-        request.id = getRandomId();
+        request = Object.assign(
+          {
+            id: getRandomId(),
+          },
+          request,
+        );
       }
 
       const body = JSON.stringify(request);
