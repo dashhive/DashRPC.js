@@ -213,6 +213,19 @@ var DashRpc = ('object' === typeof module && exports) || {};
       method = method.toLowerCase();
       let argTypes = argTypesStr.split(' ');
 
+      {
+        // remove trailing 'undefined' arguments (from args being wrapped)
+        let last = args.length - 1;
+        for (; last >= 0; last -= 1) {
+          let arg = args[last];
+          if (typeof arg === 'undefined') {
+            args.splice(-1, 1);
+          } else {
+            break;
+          }
+        }
+      }
+
       let path = DashRpc._splicePathFromExtras(args); // may args.splice(-1, 1)
       let params = DashRpc._convertArgsTypes(argTypes, args);
 
